@@ -15,14 +15,14 @@ const io = socketio(server);
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-const botName = 'Josh Bot'
+const botName = 'Josh Bot';
 
 // Run when client connects 
-io.on('connection', socket => {
+io.on('connection', (socket) => {
 
-    socket.on('joinRoom', ({ username, room }) => {
-        const user = userJoin(socket.id, username, room);
-
+    socket.on("joinRoom", ({ username, room }) => {
+        let user = userJoin(socket.id, username, room);
+        
         socket.join(user.room);
 
         // Welcome current user 
@@ -33,19 +33,21 @@ io.on('connection', socket => {
             .to(user.room)
             .emit(
                 'message',
-                formatMessage(botName, `${user.username} joined the chat`
+                formatMessage(botName, `${user.username} has joined the chat`
                 ));
     });
 
 
 
     // Listen for chatMessage
-    socket.on('chatMessage', msg => {
+    socket.on('chatMessage', (msg) => {
         io.emit('message', formatMessage('USER', msg));
 
         // Runs when a client disconnects
         socket.on('disconnect', () => {
-            io.emit('message', formatMessage(botName, `${user.username} has left the chat`))
+            io.to(user.room).emit(
+                'message', 
+                formatMessage(botName, `${user.username} has left the chat`))
         });
     });
 });
